@@ -50,16 +50,10 @@ namespace Project
             MemberForm window = new MemberForm();
             window.ShowDialog();
 
-            if (window.ReturnProjectMember is null)
+            if (!window.ConfirmClick)
                 return;
 
-            if (_members.Contains(window.ReturnProjectMember))
-            {
-                MessageBox.Show("Member with same full name already exist", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            _members.Add(window.ReturnProjectMember);
+            _members.Add(window.SchedulerMemberObject);
             DispalayMembers();
         }
 
@@ -87,53 +81,25 @@ namespace Project
             MainMenuWindow.Show();
         }
 
-        private SchedulerMember? GetSelectedMember()
-        {
-            string? selected_member_fullname = members_listbox.SelectedItem?.ToString();
-
-            return _members.Find(member =>member.FullName == selected_member_fullname);
-        }
-
         private void members_listbox_DoubleClick(object sender, EventArgs e)
         {
-            SchedulerMember? selected_member = GetSelectedMember();
-
-            if (selected_member is null)
+            if (members_listbox.SelectedItem is null)
                 return;
 
             MemberForm window = new MemberForm();
-
-            
-            SchedulerMember tmp = selected_member.Clone() as SchedulerMember;
-            window.ModifyMember = selected_member;
+            window.SchedulerMemberObject = _members[members_listbox.SelectedIndex];
+            window.ConfirmButtonText = "save";
             window.ShowDialog();
-
-            if (window.ReturnProjectMember is null)
-                return;
-
-            if (window.ReturnProjectMember == selected_member)
-                return;
-
-            if (_members.Contains(window.ReturnProjectMember))
-            {
-                MessageBox.Show("Member with same full name already exist", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            _members.Remove(selected_member);
-            _members.Add(window.ReturnProjectMember);
 
             DispalayMembers();
         }
 
         private void delete_member_btn_Click(object sender, EventArgs e)
         {
-            SchedulerMember? selected_member = GetSelectedMember();
-
-            if (selected_member is null)
+            if (members_listbox.SelectedItem is null)
                 return;
-
-            _members.Remove(selected_member);
+            int index = members_listbox.SelectedIndex;
+            _members.RemoveAt(index);
             DispalayMembers();
         }
 

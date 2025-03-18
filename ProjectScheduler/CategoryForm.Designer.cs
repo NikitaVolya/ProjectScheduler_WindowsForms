@@ -40,7 +40,7 @@
             green_numeric = new NumericUpDown();
             blue_label = new Label();
             blue_numeric = new NumericUpDown();
-            create_btn = new Button();
+            confirm_btn = new Button();
             ((System.ComponentModel.ISupportInitialize)red_numeric).BeginInit();
             ((System.ComponentModel.ISupportInitialize)green_numeric).BeginInit();
             ((System.ComponentModel.ISupportInitialize)blue_numeric).BeginInit();
@@ -50,7 +50,7 @@
             // 
             description_textbox.Font = new Font("Segoe UI", 12F);
             description_textbox.Location = new Point(15, 155);
-            description_textbox.Margin = new Padding(4, 4, 4, 4);
+            description_textbox.Margin = new Padding(4);
             description_textbox.Multiline = true;
             description_textbox.Name = "description_textbox";
             description_textbox.Size = new Size(365, 303);
@@ -71,7 +71,7 @@
             // 
             name_textbox.Font = new Font("Segoe UI", 12F);
             name_textbox.Location = new Point(15, 61);
-            name_textbox.Margin = new Padding(4, 4, 4, 4);
+            name_textbox.Margin = new Padding(4);
             name_textbox.Name = "name_textbox";
             name_textbox.Size = new Size(365, 39);
             name_textbox.TabIndex = 5;
@@ -91,7 +91,7 @@
             // 
             color_panel.BackColor = SystemColors.ControlDark;
             color_panel.Location = new Point(434, 61);
-            color_panel.Margin = new Padding(4, 4, 4, 4);
+            color_panel.Margin = new Padding(4);
             color_panel.Name = "color_panel";
             color_panel.Size = new Size(366, 42);
             color_panel.TabIndex = 12;
@@ -113,7 +113,7 @@
             red_numeric.ForeColor = SystemColors.WindowText;
             red_numeric.Increment = new decimal(new int[] { 10, 0, 0, 0 });
             red_numeric.Location = new Point(548, 146);
-            red_numeric.Margin = new Padding(4, 4, 4, 4);
+            red_numeric.Margin = new Padding(4);
             red_numeric.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             red_numeric.Name = "red_numeric";
             red_numeric.Size = new Size(252, 39);
@@ -147,7 +147,7 @@
             green_numeric.Font = new Font("Segoe UI", 12F);
             green_numeric.Increment = new decimal(new int[] { 10, 0, 0, 0 });
             green_numeric.Location = new Point(548, 196);
-            green_numeric.Margin = new Padding(4, 4, 4, 4);
+            green_numeric.Margin = new Padding(4);
             green_numeric.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             green_numeric.Name = "green_numeric";
             green_numeric.Size = new Size(252, 39);
@@ -170,30 +170,30 @@
             blue_numeric.Font = new Font("Segoe UI", 12F);
             blue_numeric.Increment = new decimal(new int[] { 10, 0, 0, 0 });
             blue_numeric.Location = new Point(548, 246);
-            blue_numeric.Margin = new Padding(4, 4, 4, 4);
+            blue_numeric.Margin = new Padding(4);
             blue_numeric.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
             blue_numeric.Name = "blue_numeric";
             blue_numeric.Size = new Size(252, 39);
             blue_numeric.TabIndex = 18;
             blue_numeric.ValueChanged += color_Scroll;
             // 
-            // create_btn
+            // confirm_btn
             // 
-            create_btn.Location = new Point(434, 414);
-            create_btn.Margin = new Padding(4, 4, 4, 4);
-            create_btn.Name = "create_btn";
-            create_btn.Size = new Size(366, 45);
-            create_btn.TabIndex = 20;
-            create_btn.Text = "create";
-            create_btn.UseVisualStyleBackColor = true;
-            create_btn.Click += create_btn_Click;
+            confirm_btn.Location = new Point(434, 414);
+            confirm_btn.Margin = new Padding(4);
+            confirm_btn.Name = "confirm_btn";
+            confirm_btn.Size = new Size(366, 45);
+            confirm_btn.TabIndex = 20;
+            confirm_btn.Text = "create";
+            confirm_btn.UseVisualStyleBackColor = true;
+            confirm_btn.Click += confirm_btn_Click;
             // 
             // CategoryForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(831, 480);
-            Controls.Add(create_btn);
+            Controls.Add(confirm_btn);
             Controls.Add(blue_label);
             Controls.Add(blue_numeric);
             Controls.Add(grean_label);
@@ -207,9 +207,10 @@
             Controls.Add(name_textbox);
             Controls.Add(name_label);
             FormBorderStyle = FormBorderStyle.Fixed3D;
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(4);
             Name = "CategoryForm";
             Text = "CategoryForm";
+            Load += CategoryForm_Load;
             ((System.ComponentModel.ISupportInitialize)red_numeric).EndInit();
             ((System.ComponentModel.ISupportInitialize)green_numeric).EndInit();
             ((System.ComponentModel.ISupportInitialize)blue_numeric).EndInit();
@@ -231,6 +232,6 @@
         private NumericUpDown green_numeric;
         private Label blue_label;
         private NumericUpDown blue_numeric;
-        private Button create_btn;
+        private Button confirm_btn;
     }
 }

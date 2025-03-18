@@ -8,9 +8,8 @@ namespace Project
     public partial class WorkForm : Form
     {
         private SchedulerProject _scheduler_project;
-        private bool _holding_task;
         private SchedulerTask? _current_task;
-        private bool _project_changing;
+        private bool _project_saving;
 
         public string ProjectPath { get; set; }
         public MainMenuForm MenuWindow { get; set; }
@@ -18,7 +17,6 @@ namespace Project
         public WorkForm()
         {
             InitializeComponent();
-            _holding_task = false;
             _current_task = null;
         }
 
@@ -39,11 +37,11 @@ namespace Project
             }
 
             Text = "Project sheduler | " + _scheduler_project.Name;
-            _project_changing = false;
-            DiscplaySchedulerTasks();
+            _project_saving = true;
+            DisplaySchedulerTasks();
         }
 
-        private void DiscplaySchedulerTasks()
+        private void DisplaySchedulerTasks()
         {
             progress_panel.Controls.Clear();
             planned_panel.Controls.Clear();
@@ -77,7 +75,7 @@ namespace Project
         private void WorkForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             MenuWindow.Show();
-            if (_project_changing)
+            if (!_project_saving)
             {
                 DialogResult result = MessageBox.Show("Do you want to save project?", "question", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes)
@@ -93,56 +91,59 @@ namespace Project
             window.FilePath = ProjectPath;
             window.SchedulerProjectObject = _scheduler_project;
             window.ShowDialog();
-
-            DiscplaySchedulerTasks();
+            _project_saving = false;
+            DisplaySchedulerTasks();
         }
 
         private void newTaskToolStripMenuItem_Click(object sender, EventArgs e)
         {
             TaskForm window = new TaskForm();
 
-            int task_number = _scheduler_project.Tasks.Count;
-            window.ProjectObject = _scheduler_project;
+            window.SchedulerProjectObject = _scheduler_project;
             window.ShowDialog();
+            if (!window.ConfirmClick)
+                return;
 
-            if (task_number != _scheduler_project.Tasks.Count)
-                _project_changing = true;
-            DiscplaySchedulerTasks();
+            _scheduler_project.Tasks.Add(window.SchedulerTaskObject);
+            _project_saving = false;
+            DisplaySchedulerTasks();
         }
 
         private void newCategoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CategoryForm window = new CategoryForm();
             window.ProjectObject = _scheduler_project;
-
-            int category_number = _scheduler_project.ProjectCategories.Count;
-
+            window.SchedulerCategoryObject = new SchedulerCategory("New category", "", Color.White);
             window.ShowDialog();
-            if (category_number != _scheduler_project.ProjectCategories.Count)
-                _project_changing = true;
+
+            if (!window.ConfirmClick)
+                return;
+
+            _scheduler_project.ProjectCategories.Add(window.SchedulerCategoryObject);
+            _project_saving = false;
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e) => XMLSchedulerWriter.SaveToXML(_scheduler_project, ProjectPath);
-
-        private SchedulerTask GetTaskByPanel(Panel panel)
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Panel body = (Panel)panel;
-            string title = ((Label)body.Controls[1]).Text;
-            return _scheduler_project.Tasks.Find(x => x.Name == title);
+            XMLSchedulerWriter.SaveToXML(_scheduler_project, ProjectPath);
+            _project_saving = true;
+        }
+
+        private SchedulerTask? GetTaskByPanel(Panel panel)
+        {
+            int task_id = (int)((NumericUpDown)panel.Controls[0]).Value;
+            return _scheduler_project.Tasks.Find(x => x.Id == task_id);
         }
 
         private void task_panel_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-                _holding_task = true;
-
             _current_task = GetTaskByPanel((Panel)sender);
         }
 
 
         private void task_panel_MouseUp(object sender, MouseEventArgs e)
         {
-            if (!_holding_task)
+            if (_current_task is null)
                 return;
 
             int x = Cursor.Position.X - Location.X;
@@ -164,9 +165,9 @@ namespace Project
             task.Status = new_status;
             _scheduler_project.Tasks.Remove(task);
             _scheduler_project.Tasks.Add(task);
-            _holding_task = false;
-            _project_changing = true;
-            DiscplaySchedulerTasks();
+            _project_saving = true;
+            _current_task = null;
+            DisplaySchedulerTasks();
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -177,16 +178,21 @@ namespace Project
             DialogResult result = MessageBox.Show("Do you want to delete the task?", "question", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
                 _scheduler_project.Tasks.Remove(_current_task);
-            DiscplaySchedulerTasks();
+            DisplaySchedulerTasks();
         }
         private void infoToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (_current_task is null)
+                return;
+
             TaskForm window = new TaskForm();
-            window.ProjectObject = _scheduler_project;
-            window.TaskToUpdate = _current_task;
+
+            window.SchedulerProjectObject = _scheduler_project;
+            window.SchedulerTaskObject = _current_task;
+
             window.ShowDialog();
-            _project_changing = true;
-            DiscplaySchedulerTasks();
+            _project_saving = true;
+            DisplaySchedulerTasks();
         }
     }
 }

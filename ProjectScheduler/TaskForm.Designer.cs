@@ -40,7 +40,7 @@
             deadlineDateTimePicker = new DateTimePicker();
             deadline_label = new Label();
             color_panel = new Panel();
-            create_btn = new Button();
+            confirm_btn = new Button();
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             SuspendLayout();
             // 
@@ -171,21 +171,21 @@
             // 
             // create_btn
             // 
-            create_btn.Location = new Point(419, 401);
-            create_btn.Margin = new Padding(4);
-            create_btn.Name = "create_btn";
-            create_btn.Size = new Size(411, 55);
-            create_btn.TabIndex = 12;
-            create_btn.Text = "create";
-            create_btn.UseVisualStyleBackColor = true;
-            create_btn.Click += create_btn_Click;
+            confirm_btn.Location = new Point(419, 401);
+            confirm_btn.Margin = new Padding(4);
+            confirm_btn.Name = "create_btn";
+            confirm_btn.Size = new Size(411, 55);
+            confirm_btn.TabIndex = 12;
+            confirm_btn.Text = "create";
+            confirm_btn.UseVisualStyleBackColor = true;
+            confirm_btn.Click += create_btn_Click;
             // 
             // TaskForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(859, 486);
-            Controls.Add(create_btn);
+            Controls.Add(confirm_btn);
             Controls.Add(color_panel);
             Controls.Add(deadline_label);
             Controls.Add(deadlineDateTimePicker);
@@ -221,7 +221,7 @@
         private DateTimePicker deadlineDateTimePicker;
         private Label deadline_label;
         private Panel color_panel;
-        private Button create_btn;
+        private Button confirm_btn;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }

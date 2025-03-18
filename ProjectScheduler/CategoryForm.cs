@@ -1,28 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using ShedulerObjects;
+﻿using ShedulerObjects;
 
 namespace Project
 {
     public partial class CategoryForm : Form
     {
         public SchedulerProject ProjectObject { get; set; }
+        public SchedulerCategory SchedulerCategoryObject { get; set; }
+        private bool _confirm_btn_click;
+        public bool ConfirmClick { get => _confirm_btn_click; }
+        public string ConfirmButtonText { get => confirm_btn.Text; set => confirm_btn.Text = value; }
 
         public CategoryForm()
         {
             InitializeComponent();
 
+            SchedulerCategoryObject = new SchedulerCategory("", "", Color.White);
+            _confirm_btn_click = false;
+
             color_Scroll(null, null);
         }
 
-        private void create_btn_Click(object sender, EventArgs e)
+        private void confirm_btn_Click(object sender, EventArgs e)
         {
             if (name_textbox.Text == String.Empty)
             {
@@ -30,26 +28,26 @@ namespace Project
                 return;
             }
 
-            SchedulerCategory new_category = new SchedulerCategory
-            {
-                Name = name_textbox.Text,
-                Description = description_textbox.Text,
-                CategoryColor = color_panel.BackColor
-            };
-
-            if (ProjectObject.ProjectCategories.Contains(new_category))
-            {
-                MessageBox.Show("The category with this name is already exist!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            ProjectObject.ProjectCategories.Add(new_category);
+            SchedulerCategoryObject.Name = name_textbox.Text;
+            SchedulerCategoryObject.Description = description_textbox.Text;
+            SchedulerCategoryObject.CategoryColor = color_panel.BackColor;
+            _confirm_btn_click = true;
             Close();
         }
 
         private void color_Scroll(object sender, EventArgs e)
         {
             color_panel.BackColor = Color.FromArgb((int)red_numeric.Value, (int)green_numeric.Value, (int)blue_numeric.Value);
+        }
+
+        private void CategoryForm_Load(object sender, EventArgs e)
+        {
+            name_textbox.Text = SchedulerCategoryObject.Name;
+            description_textbox.Text = SchedulerCategoryObject.Description;
+            color_panel.BackColor = SchedulerCategoryObject.CategoryColor;
+            red_numeric.Value = SchedulerCategoryObject.CategoryColor.R;
+            green_numeric.Value = SchedulerCategoryObject.CategoryColor.G;
+            blue_numeric.Value = SchedulerCategoryObject.CategoryColor.B;
         }
     }
 }

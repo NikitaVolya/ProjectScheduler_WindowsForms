@@ -34,7 +34,7 @@
             second_name_label = new Label();
             description_label = new Label();
             description_textbox = new TextBox();
-            create_btn = new Button();
+            confirm_btn = new Button();
             SuspendLayout();
             // 
             // name_label
@@ -53,7 +53,7 @@
             name_textbox.Font = new Font("Segoe UI", 12F);
             name_textbox.ImeMode = ImeMode.NoControl;
             name_textbox.Location = new Point(15, 50);
-            name_textbox.Margin = new Padding(4, 4, 4, 4);
+            name_textbox.Margin = new Padding(4);
             name_textbox.Name = "name_textbox";
             name_textbox.Size = new Size(350, 39);
             name_textbox.TabIndex = 1;
@@ -64,7 +64,7 @@
             surname_textbox.Font = new Font("Segoe UI", 12F);
             surname_textbox.ImeMode = ImeMode.NoControl;
             surname_textbox.Location = new Point(15, 135);
-            surname_textbox.Margin = new Padding(4, 4, 4, 4);
+            surname_textbox.Margin = new Padding(4);
             surname_textbox.Name = "surname_textbox";
             surname_textbox.Size = new Size(350, 39);
             surname_textbox.TabIndex = 3;
@@ -95,7 +95,7 @@
             // 
             description_textbox.Font = new Font("Segoe UI", 12F);
             description_textbox.Location = new Point(15, 232);
-            description_textbox.Margin = new Padding(4, 4, 4, 4);
+            description_textbox.Margin = new Padding(4);
             description_textbox.Multiline = true;
             description_textbox.Name = "description_textbox";
             description_textbox.Size = new Size(350, 248);
@@ -103,21 +103,21 @@
             // 
             // create_btn
             // 
-            create_btn.Location = new Point(15, 489);
-            create_btn.Margin = new Padding(4, 4, 4, 4);
-            create_btn.Name = "create_btn";
-            create_btn.Size = new Size(351, 59);
-            create_btn.TabIndex = 6;
-            create_btn.Text = "Create";
-            create_btn.UseVisualStyleBackColor = true;
-            create_btn.Click += create_btn_Click;
+            confirm_btn.Location = new Point(15, 489);
+            confirm_btn.Margin = new Padding(4);
+            confirm_btn.Name = "create_btn";
+            confirm_btn.Size = new Size(351, 59);
+            confirm_btn.TabIndex = 6;
+            confirm_btn.Text = "Create";
+            confirm_btn.UseVisualStyleBackColor = true;
+            confirm_btn.Click += create_btn_Click;
             // 
             // MemberForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(386, 562);
-            Controls.Add(create_btn);
+            Controls.Add(confirm_btn);
             Controls.Add(description_textbox);
             Controls.Add(description_label);
             Controls.Add(surname_textbox);
@@ -125,11 +125,10 @@
             Controls.Add(name_textbox);
             Controls.Add(name_label);
             FormBorderStyle = FormBorderStyle.Fixed3D;
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(4);
             Name = "MemberForm";
             Text = "CreateMember";
             Load += CreateMember_Load;
-            KeyPress += MemberForm_KeyPress;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -142,6 +141,6 @@
         private Label second_name_label;
         private Label description_label;
         private TextBox description_textbox;
-        private Button create_btn;
+        private Button confirm_btn;
     }
 }

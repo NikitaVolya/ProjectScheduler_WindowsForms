@@ -38,7 +38,7 @@
             name_label = new Label();
             categories_label = new Label();
             categories_listbox = new ListBox();
-            delete_project_btn = new Button();
+            delete_category_btn = new Button();
             add_category_btn = new Button();
             change_btn = new Button();
             SuspendLayout();
@@ -86,6 +86,7 @@
             members_listbox.Name = "members_listbox";
             members_listbox.Size = new Size(465, 420);
             members_listbox.TabIndex = 14;
+            members_listbox.DoubleClick += members_listbox_DoubleClick;
             // 
             // description_textbox
             // 
@@ -149,16 +150,18 @@
             categories_listbox.Name = "categories_listbox";
             categories_listbox.Size = new Size(465, 420);
             categories_listbox.TabIndex = 19;
+            categories_listbox.DoubleClick += categories_listbox_DoubleClick;
             // 
-            // delete_project_btn
+            // delete_category_btn
             // 
-            delete_project_btn.Location = new Point(1200, 488);
-            delete_project_btn.Margin = new Padding(4);
-            delete_project_btn.Name = "delete_project_btn";
-            delete_project_btn.Size = new Size(222, 56);
-            delete_project_btn.TabIndex = 21;
-            delete_project_btn.Text = "delete project category";
-            delete_project_btn.UseVisualStyleBackColor = true;
+            delete_category_btn.Location = new Point(1200, 488);
+            delete_category_btn.Margin = new Padding(4);
+            delete_category_btn.Name = "delete_category_btn";
+            delete_category_btn.Size = new Size(222, 56);
+            delete_category_btn.TabIndex = 21;
+            delete_category_btn.Text = "delete project category";
+            delete_category_btn.UseVisualStyleBackColor = true;
+            delete_category_btn.Click += delete_category_btn_Click;
             // 
             // add_category_btn
             // 
@@ -169,6 +172,7 @@
             add_category_btn.TabIndex = 20;
             add_category_btn.Text = "add project category";
             add_category_btn.UseVisualStyleBackColor = true;
+            add_category_btn.Click += add_category_btn_Click;
             // 
             // change_btn
             // 
@@ -178,7 +182,7 @@
             change_btn.TabIndex = 22;
             change_btn.Text = "Change name and description";
             change_btn.UseVisualStyleBackColor = true;
-            change_btn.Click += change_btn_Click;
+            change_btn.Click += confirm_btn_Click;
             // 
             // ProjectPropertiesForm
             // 
@@ -186,7 +190,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1446, 557);
             Controls.Add(change_btn);
-            Controls.Add(delete_project_btn);
+            Controls.Add(delete_category_btn);
             Controls.Add(add_category_btn);
             Controls.Add(categories_listbox);
             Controls.Add(categories_label);
@@ -218,7 +222,7 @@
         private Label name_label;
         private Label categories_label;
         private ListBox categories_listbox;
-        private Button delete_project_btn;
+        private Button delete_category_btn;
         private Button add_category_btn;
         private Button change_btn;
     }
