@@ -236,6 +236,21 @@ namespace ShedulerObjects
                 return null;
             }
         }
+
+        public static string? ProjectNameParse(string file_path)
+        {
+            try
+            {
+                XElement project_data = XElement.Load(file_path);
+                XElement? project_name = project_data.Element("ProjectName");
+                if (project_name is null)
+                    throw new Exception("Error ProjectName dont found");
+                return project_name.Value;
+            } catch (Exception e)
+            {
+                return null;
+            }
+        }
     }
 
     public class TaskSchedulerPanel
