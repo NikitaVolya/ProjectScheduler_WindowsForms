@@ -1,41 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿
+using ShedulerObjects;
 
 namespace Project
 {
     public partial class MainMenuForm : Form
     {
+        private struct ProjectListElement
+        {
+            public string ProjectPath, ProjectName;
+        }
+        private List<ProjectListElement> _projects;
+
         public MainMenuForm()
         {
             InitializeComponent();
-
+            _projects = new List<ProjectListElement>();
         }
 
         public void AddProject(string path)
         {
-            recent_project_listbox.Items.Add(path);
-            save_to_file();
+            string? project_name = XMLSchedulerParser.ProjectNameParse(path);
+            if (project_name is null)
+            {
+                MessageBox.Show("Error in load project : " + path, "error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            _projects.Add(new ProjectListElement { ProjectPath = path, ProjectName = project_name });
+            recent_project_listbox.Items.Add(project_name);
         }
 
         private void load_file()
         {
+            _projects.Clear();
+            recent_project_listbox.Items.Clear();
             string[] data = File.ReadAllLines("recent_projects.txt");
             foreach (string item in data)
-                recent_project_listbox.Items.Add(item);
+                AddProject(item);
+            save_to_file();
         }
 
         private void save_to_file()
         {
             string data = String.Empty;
-            foreach (string item in recent_project_listbox.Items)
-                data += item + "\n";
+            foreach (ProjectListElement item in _projects)
+                data += item.ProjectPath + "\n";
             File.WriteAllText("recent_projects.txt", data);
         }
 
@@ -45,18 +53,20 @@ namespace Project
             {
                 string file = openFileDialog1.FileName;
                 AddProject(file);
+                save_to_file();
             }
         }
 
         private void MainMenu_Load(object sender, EventArgs e)
         {
             Text = "Project sheduler main menu";
-
             load_file();
         }
 
         private void remove_project_btn_Click(object sender, EventArgs e)
         {
+            if (recent_project_listbox.SelectedItem is null)
+                return;
             recent_project_listbox.Items.Remove(recent_project_listbox.SelectedItem);
             save_to_file();
         }
@@ -67,13 +77,15 @@ namespace Project
             if (selected is null)
                 return;
 
+            
             WorkForm workForm = new WorkForm();
 
-            workForm.ProjectPath = selected.ToString();
+            workForm.ProjectPath = _projects[recent_project_listbox.SelectedIndex].ProjectPath;
             workForm.MenuWindow = this;
 
             workForm.Show();
             Hide();
+            load_file();
         }
 
         private void create_project_btn_Click(object sender, EventArgs e)

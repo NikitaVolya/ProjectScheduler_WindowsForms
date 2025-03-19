@@ -167,6 +167,7 @@ namespace Project
             _scheduler_project.Tasks.Add(task);
             _project_saving = true;
             _current_task = null;
+            _project_saving = false;
             DisplaySchedulerTasks();
         }
 
