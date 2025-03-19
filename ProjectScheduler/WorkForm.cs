@@ -29,15 +29,15 @@ namespace Project
             }
 
             _scheduler_project = XMLSchedulerParser.ProjectParse(ProjectPath);
+            _project_saving = true;
 
             if (_scheduler_project is null)
             {
-                Application.Exit();
+                Close();
                 return;
             }
 
             Text = "Project sheduler | " + _scheduler_project.Name;
-            _project_saving = true;
             DisplaySchedulerTasks();
         }
 
@@ -74,13 +74,13 @@ namespace Project
 
         private void WorkForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            MenuWindow.Show();
             if (!_project_saving)
             {
                 DialogResult result = MessageBox.Show("Do you want to save project?", "question", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes)
                     saveToolStripMenuItem_Click(null, null);
             }
+            MenuWindow.Show();
         }
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e) => Close();

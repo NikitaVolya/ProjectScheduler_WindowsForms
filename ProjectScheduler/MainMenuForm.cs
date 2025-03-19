@@ -1,5 +1,10 @@
 ﻿
 using ShedulerObjects;
+using System.Text;
+using System;
+using static System.Windows.Forms.DataFormats;
+using System.Diagnostics;
+using System.IO;
 
 namespace Project
 {
@@ -26,7 +31,14 @@ namespace Project
                 return;
             }
             _projects.Add(new ProjectListElement { ProjectPath = path, ProjectName = project_name });
-            recent_project_listbox.Items.Add(project_name);
+            DisplayRecentProject();
+        }
+
+        public void DisplayRecentProject()
+        {
+            recent_project_listbox.Items.Clear();
+            foreach (var element in _projects)
+                recent_project_listbox.Items.Add(element.ProjectName);
         }
 
         private void load_file()
@@ -67,17 +79,17 @@ namespace Project
         {
             if (recent_project_listbox.SelectedItem is null)
                 return;
-            recent_project_listbox.Items.Remove(recent_project_listbox.SelectedItem);
+            _projects.RemoveAt(recent_project_listbox.SelectedIndex);
+            DisplayRecentProject();
             save_to_file();
         }
 
         private void recent_project_listbox_DoubleClick(object sender, EventArgs e)
         {
-            var selected = recent_project_listbox.SelectedItem;
-            if (selected is null)
+            if (recent_project_listbox.SelectedItem is null)
                 return;
 
-            
+
             WorkForm workForm = new WorkForm();
 
             workForm.ProjectPath = _projects[recent_project_listbox.SelectedIndex].ProjectPath;
@@ -97,9 +109,42 @@ namespace Project
             Hide();
         }
 
-        private void recent_project_listbox_SelectedIndexChanged(object sender, EventArgs e)
+        private void copyPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (recent_project_listbox.SelectedItem is null)
+                return;
+            ProjectListElement element = _projects[recent_project_listbox.SelectedIndex];
+            var obj = new System.Windows.Forms.DataObject(DataFormats.Text, element.ProjectPath);
+            Clipboard.SetDataObject(obj, true);
+        }
 
+        private void showInExploerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (recent_project_listbox.SelectedItem is null)
+                return;
+            ProjectListElement element = _projects[recent_project_listbox.SelectedIndex];
+            string? path = string.Join("\\", element.ProjectPath.Split("\\").SkipLast(1));
+            if (path is null)
+                return;
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+            {
+                FileName = path,
+                UseShellExecute = true,
+                Verb = "open",
+            });
+        }
+
+        private void delete_project_btn_Click(object sender, EventArgs e)
+        {
+            if (recent_project_listbox.SelectedItem is null)
+                return;
+
+            ProjectListElement element = _projects[recent_project_listbox.SelectedIndex];
+            DialogResult result = MessageBox.Show($"Are you sure you want to delete the project {element.ProjectName} ?", "question", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.No)
+                return;
+            File.Delete(element.ProjectPath);
+            remove_project_btn_Click(sender, e);
         }
     }
 }
