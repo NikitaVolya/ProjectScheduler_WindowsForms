@@ -1,23 +1,58 @@
-﻿using ShedulerObjects;
+﻿using ProjectScheduler.DAL.Entities;
 
-namespace Project
+namespace ProjectScheduler
 {
     public partial class CategoryForm : Form
     {
-        public SchedulerProject ProjectObject { get; set; }
-        public SchedulerCategory SchedulerCategoryObject { get; set; }
-        private bool _confirm_btn_click;
-        public bool ConfirmClick { get => _confirm_btn_click; }
-        public string ConfirmButtonText { get => confirm_btn.Text; set => confirm_btn.Text = value; }
+        public SchedulerCategory? Target { get; set; }
+        public bool ConfirmClick { get => _confirm_click; }
+        public string ConfirmButtonText { 
+            get => confirm_btn.Text; 
+            set => confirm_btn.Text = value; 
+        }
+
+
+        private bool _confirm_click;
+        private Color ChosenColor { 
+            get => 
+                Color.FromArgb(
+            (int)red_numeric.Value,
+            (int)green_numeric.Value, 
+            (int)blue_numeric.Value);
+        }
 
         public CategoryForm()
         {
             InitializeComponent();
 
-            SchedulerCategoryObject = new SchedulerCategory("", "", Color.White);
-            _confirm_btn_click = false;
+            _confirm_click = false;
 
             color_Scroll(null, null);
+        }
+
+        private void CategoryForm_Load(object sender, EventArgs e)
+        {
+            if (Target == null)
+            {
+                MessageBox.Show("Error loading category data!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Close();
+                return;
+            }
+
+            name_textbox.Text = Target.Name;
+            description_textbox.Text = Target.Description;
+
+            red_numeric.Value = Target.ColorRed;
+            green_numeric.Value = Target.ColorGreen;
+            blue_numeric.Value = Target.ColorBlue;
+
+            color_panel.BackColor = ChosenColor;
+
+        }
+
+        private void color_Scroll(object sender, EventArgs e)
+        {
+            color_panel.BackColor = ChosenColor;
         }
 
         private void confirm_btn_Click(object sender, EventArgs e)
@@ -28,26 +63,13 @@ namespace Project
                 return;
             }
 
-            SchedulerCategoryObject.Name = name_textbox.Text;
-            SchedulerCategoryObject.Description = description_textbox.Text;
-            SchedulerCategoryObject.CategoryColor = color_panel.BackColor;
-            _confirm_btn_click = true;
+            Target.Name = name_textbox.Text;
+            Target.Description = description_textbox.Text;
+            Target.ColorRed = ChosenColor.R;
+            Target.ColorGreen = ChosenColor.G;
+            Target.ColorBlue = ChosenColor.B;
+            _confirm_click = true;
             Close();
-        }
-
-        private void color_Scroll(object sender, EventArgs e)
-        {
-            color_panel.BackColor = Color.FromArgb((int)red_numeric.Value, (int)green_numeric.Value, (int)blue_numeric.Value);
-        }
-
-        private void CategoryForm_Load(object sender, EventArgs e)
-        {
-            name_textbox.Text = SchedulerCategoryObject.Name;
-            description_textbox.Text = SchedulerCategoryObject.Description;
-            color_panel.BackColor = SchedulerCategoryObject.CategoryColor;
-            red_numeric.Value = SchedulerCategoryObject.CategoryColor.R;
-            green_numeric.Value = SchedulerCategoryObject.CategoryColor.G;
-            blue_numeric.Value = SchedulerCategoryObject.CategoryColor.B;
         }
     }
 }

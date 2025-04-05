@@ -1,38 +1,44 @@
-﻿using ShedulerObjects;
+﻿using ProjectScheduler.DAL;
+using ProjectScheduler.DAL.Entities;
 
-namespace Project
+namespace ProjectScheduler
 {
     public partial class TaskForm : Form
     {
-        public SchedulerProject SchedulerProjectObject { get; set; }
-        public SchedulerTask SchedulerTaskObject { get; set; }
+        public SchedulerTask? Target { get; set; }
+        public SchedulerProjectServise ProjectServise { get; set; }
+
+        public bool ConfirmClick { get => _confirm_btn_click; }
         public string ConfirmButtonText { get => confirm_btn.Text; set => confirm_btn.Text = value; }
 
+        private SchedulerProjectServise _project_servise;
         private bool _confirm_btn_click;
-        public bool ConfirmClick { get => _confirm_btn_click; }
 
         public TaskForm()
         {
             InitializeComponent();
+            _project_servise = new SchedulerProjectServise();
             _confirm_btn_click = false;
-            SchedulerTaskObject = new SchedulerTask("New task", "", SchedulerTaskStatus.Planned, DateTime.Now);
         }
 
         private void TaskForm_Load(object sender, EventArgs e)
         {
             update_categories();
 
-            foreach (var member in SchedulerProjectObject.ProjectMembers)
-                owner_combobox.Items.Add(member.FullName);
+            if (Target == null)
+            {
+                MessageBox.Show("Error in load data", "error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
 
-            if (SchedulerTaskObject is null)
-                throw new Exception("Task From error");
+            foreach (var member in Target.SchedulerProject.SchedulerMembers)
+                owner_combobox.Items.Add(member.FirstName + " " + member.LastName);
 
-            name_textbox.Text = SchedulerTaskObject.Name;
-            description_textbox.Text = SchedulerTaskObject.Description;
-            category_combobox.Text = SchedulerTaskObject.TaskOwnerFullName;
-            owner_combobox.Text = SchedulerTaskObject.TaskOwnerFullName;
-            deadlineDateTimePicker.Value = SchedulerTaskObject.Deadline;
+
+            name_textbox.Text = Target.Name;
+            description_textbox.Text = Target.Description;
+            category_combobox.Text = Target?.SchedulerCategory?.Name;
+            owner_combobox.Text = Target?.SchedulerOwner?.FirstName + " " + Target?.SchedulerOwner?.LastName;
+            deadlineDateTimePicker.Value = Target.DeadLine;
 
             confirm_btn.Text = ConfirmButtonText;
         }
@@ -40,29 +46,36 @@ namespace Project
         private void update_categories()
         {
             category_combobox.Items.Clear();
-            foreach (var category in SchedulerProjectObject.ProjectCategories)
+            foreach (var category in Target.SchedulerProject.SchedulerCategories)
                 category_combobox.Items.Add(category.Name);
-            category_combobox.SelectedIndex = SchedulerProjectObject.ProjectCategories.IndexOf(SchedulerTaskObject.TaskCategory);
+            category_combobox.SelectedItem = null;
         }
-
-        private void add_category_btn_Click(object sender, EventArgs e)
-        {
-            CategoryForm window = new CategoryForm();
-            window.ProjectObject = SchedulerProjectObject;
-            window.ShowDialog();
-            if (!window.ConfirmClick)
-                return;
-            SchedulerProjectObject.ProjectCategories.Add(window.SchedulerCategoryObject);
-            SchedulerTaskObject.TaskCategory = window.SchedulerCategoryObject;
-            update_categories();
-        }
-
         private void category_combobox_ValueMemberChanged(object sender, EventArgs e)
         {
             if (category_combobox.SelectedItem is null)
                 return;
-            SchedulerCategory category = SchedulerProjectObject.ProjectCategories[category_combobox.SelectedIndex];
-            color_panel.BackColor = category.CategoryColor;
+            SchedulerCategory category = Target.SchedulerProject.SchedulerCategories[category_combobox.SelectedIndex];
+            Target.SchedulerCategory = category;
+            color_panel.BackColor = Color.FromArgb(category.ColorRed, category.ColorGreen, category.ColorBlue);
+        }
+        private void add_category_btn_Click(object sender, EventArgs e)
+        {
+            CategoryForm window = new CategoryForm();
+            window.Target = new SchedulerCategory
+            {
+                Name = "New Category",
+                Description = "Description",
+                ColorRed = 255,
+                ColorGreen = 255,
+                ColorBlue = 255
+            };
+            window.ShowDialog();
+            if (!window.ConfirmClick)
+                return;
+
+            SchedulerCategory new_category = window.Target;
+            _project_servise.AddProjectCategory(Target.SchedulerProject, new_category);
+            update_categories();
         }
 
         private void create_btn_Click(object sender, EventArgs e)
@@ -79,8 +92,8 @@ namespace Project
                 return;
             }
 
-            SchedulerMember? owner = SchedulerProjectObject.ProjectMembers.Find(x => x.FullName == owner_combobox.Text);
-            SchedulerCategory? category = SchedulerProjectObject.ProjectCategories.Find(x => x.Name == category_combobox.Text);
+            SchedulerMember? owner = Target.SchedulerProject.SchedulerMembers[owner_combobox.SelectedIndex];
+            SchedulerCategory? category = Target.SchedulerProject.SchedulerCategories[category_combobox.SelectedIndex];
             if (owner is null || category is null)
             {
                 MessageBox.Show("Error", "error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -88,12 +101,11 @@ namespace Project
                 return;
             }   
 
-
-            SchedulerTaskObject.Name = name_textbox.Text;
-            SchedulerTaskObject.Description = description_textbox.Text;
-            SchedulerTaskObject.TaskOwner = owner;
-            SchedulerTaskObject.TaskCategory = category;
-            SchedulerTaskObject.Deadline = deadlineDateTimePicker.Value;
+            Target.Name = name_textbox.Text;
+            Target.Description = description_textbox.Text;
+            Target.SchedulerOwner = owner;
+            Target.SchedulerCategory = category;
+            Target.DeadLine = deadlineDateTimePicker.Value;
             _confirm_btn_click = true;
             Close();
         }

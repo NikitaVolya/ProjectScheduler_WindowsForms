@@ -1,4 +1,4 @@
-﻿namespace Project
+﻿namespace ProjectScheduler
 {
     partial class CategoryForm
     {

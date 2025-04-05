@@ -1,7 +1,7 @@
 using System.Xml.Linq;
-using static Project.Program;
+using static ProjectScheduler.Program;
 
-namespace Project
+namespace ProjectScheduler
 {
     public static class Program
     {

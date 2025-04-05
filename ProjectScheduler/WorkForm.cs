@@ -1,44 +1,39 @@
-using System.Windows.Forms;
-using System.Xml.Linq;
-using ProjectScheduler;
-using ShedulerObjects;
+using ProjectScheduler.DAL;
+using ProjectScheduler.DAL.Entities;
+using ProjectScheduler.SchedulerObjects;
 
-namespace Project
+namespace ProjectScheduler
 {
     public partial class WorkForm : Form
     {
-        private SchedulerProject _scheduler_project;
-        private SchedulerTask? _current_task;
-        private bool _project_saving;
-
-        public string ProjectPath { get; set; }
+        public SchedulerProject? Target { get; set; }
         public MainMenuForm MenuWindow { get; set; }
+
+        private SchedulerProjectServise _project_servise;
+        private SchedulerTask? _current_task;
 
         public WorkForm()
         {
             InitializeComponent();
+
+            _project_servise = new SchedulerProjectServise();
             _current_task = null;
         }
-
         private void WorkForm_Load(object sender, EventArgs e)
         {
-            if (ProjectPath is null)
+            if (Target == null)
             {
                 MessageBox.Show("Project not found!!!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Close();
             }
 
-            _scheduler_project = XMLSchedulerParser.ProjectParse(ProjectPath);
-            _project_saving = true;
-
-            if (_scheduler_project is null)
-            {
-                Close();
-                return;
-            }
-
-            Text = "Project sheduler | " + _scheduler_project.Name;
+            Text = "Project sheduler | " + Target.Name;
             DisplaySchedulerTasks();
+        }
+        private void WorkForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            MenuWindow.DisplayRecentProject();
+            MenuWindow.Show();
         }
 
         private void DisplaySchedulerTasks()
@@ -51,7 +46,8 @@ namespace Project
             for (int i = 0; i < 3; i++)
             {
                 int j = 20;
-                foreach (SchedulerTask task in _scheduler_project.Tasks.FindAll(x => (int)x.Status == i))
+                var panel_task = _project_servise.GetProjectTasksByStatus(Target, i).ToList();
+                foreach (SchedulerTask task in panel_task)
                 {
                     Panel task_panel = TaskSchedulerPanel.CreatePanel(task, this);
                     task_panel.Location = new Point(15, j);
@@ -72,26 +68,15 @@ namespace Project
 
         }
 
-        private void WorkForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            if (!_project_saving)
-            {
-                DialogResult result = MessageBox.Show("Do you want to save project?", "question", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if (result == DialogResult.Yes)
-                    saveToolStripMenuItem_Click(null, null);
-            }
-            MenuWindow.Show();
-        }
-
         private void closeToolStripMenuItem_Click(object sender, EventArgs e) => Close();
 
         private void propertysToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ProjectPropertiesForm window = new ProjectPropertiesForm();
-            window.FilePath = ProjectPath;
-            window.SchedulerProjectObject = _scheduler_project;
+            window.Target = Target;
+            window.ProjectServise = _project_servise;
             window.ShowDialog();
-            _project_saving = false;
+            window.Dispose();
             DisplaySchedulerTasks();
         }
 
@@ -99,48 +84,53 @@ namespace Project
         {
             TaskForm window = new TaskForm();
 
-            window.SchedulerProjectObject = _scheduler_project;
+            window.Target = new SchedulerTask
+            {
+                Name = "New task",
+                Description = "Description",
+                DeadLine = DateTime.Now,
+                SchedulerProject = Target,
+            };
+            window.ProjectServise = _project_servise;
             window.ShowDialog();
             if (!window.ConfirmClick)
                 return;
 
-            _scheduler_project.Tasks.Add(window.SchedulerTaskObject);
-            _project_saving = false;
+            SchedulerTask new_task = window.Target;
+            window.Dispose();
+            _project_servise.AddProjectTask(Target, new_task);
             DisplaySchedulerTasks();
         }
 
         private void newCategoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
             CategoryForm window = new CategoryForm();
-            window.ProjectObject = _scheduler_project;
-            window.SchedulerCategoryObject = new SchedulerCategory("New category", "", Color.White);
+            window.Target = new SchedulerCategory
+            {
+                Name = "New category",
+                Description = "Description",
+                SchedulerProject = Target
+            };
             window.ShowDialog();
 
             if (!window.ConfirmClick)
                 return;
-
-            _scheduler_project.ProjectCategories.Add(window.SchedulerCategoryObject);
-            _project_saving = false;
+            SchedulerCategory new_category = window.Target;
+            window.Dispose();
+            _project_servise.AddProjectCategory(Target, new_category);
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            XMLSchedulerWriter.SaveToXML(_scheduler_project, ProjectPath);
-            _project_saving = true;
-        }
 
         private SchedulerTask? GetTaskByPanel(Panel panel)
         {
             int task_id = (int)((NumericUpDown)panel.Controls[0]).Value;
-            return _scheduler_project.Tasks.Find(x => x.Id == task_id);
+            return _project_servise.GetProjectTaskById(task_id);
         }
 
         private void task_panel_MouseDown(object sender, MouseEventArgs e)
         {
             _current_task = GetTaskByPanel((Panel)sender);
         }
-
-
         private void task_panel_MouseUp(object sender, MouseEventArgs e)
         {
             if (_current_task is null)
@@ -148,13 +138,13 @@ namespace Project
 
             int x = Cursor.Position.X - Location.X;
 
-            SchedulerTaskStatus new_status = 0;
-            if (x > 725)
-                new_status = SchedulerTaskStatus.Done;
-            else if (x > 375)
-                new_status = SchedulerTaskStatus.InProgress;
+            SchedulerStatus new_status = 0;
+            if (x > 560)
+                new_status = SchedulerStatus.Done;
+            else if (x > 300)
+                new_status = SchedulerStatus.InProgress;
             else
-                new_status = SchedulerTaskStatus.Planned;
+                new_status = SchedulerStatus.Planned;
 
             SchedulerTask task = GetTaskByPanel((Panel)sender);
             if (task is null)
@@ -163,14 +153,23 @@ namespace Project
                 return;
 
             task.Status = new_status;
-            _scheduler_project.Tasks.Remove(task);
-            _scheduler_project.Tasks.Add(task);
-            _project_saving = true;
-            _current_task = null;
-            _project_saving = false;
+            _project_servise.UpdateProjectTask(task);
             DisplaySchedulerTasks();
         }
 
+        private void infoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_current_task is null)
+                return;
+
+            TaskForm window = new TaskForm();
+            _current_task.SchedulerProject = Target;
+            window.Target = _current_task;
+            window.ProjectServise = _project_servise;
+            window.ShowDialog();
+            window.Dispose();
+            DisplaySchedulerTasks();
+        }
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (_current_task is null)
@@ -178,21 +177,7 @@ namespace Project
 
             DialogResult result = MessageBox.Show("Do you want to delete the task?", "question", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
-                _scheduler_project.Tasks.Remove(_current_task);
-            DisplaySchedulerTasks();
-        }
-        private void infoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (_current_task is null)
-                return;
-
-            TaskForm window = new TaskForm();
-
-            window.SchedulerProjectObject = _scheduler_project;
-            window.SchedulerTaskObject = _current_task;
-
-            window.ShowDialog();
-            _project_saving = true;
+                _project_servise.RemoveProjectTask(Target, _current_task);
             DisplaySchedulerTasks();
         }
     }

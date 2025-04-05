@@ -1,18 +1,34 @@
-﻿using ShedulerObjects;
+﻿using ProjectScheduler.DAL;
+using ProjectScheduler.DAL.Entities;
 
-namespace Project
+namespace ProjectScheduler
 {
     public partial class MemberForm : Form
     {
-        public SchedulerMember SchedulerMemberObject { get; set; }
-        private bool _confirm_btn_click;
+        public SchedulerMember? Target { get; set; }
+
         public bool ConfirmClick { get => _confirm_btn_click; }
         public string ConfirmButtonText { get => confirm_btn.Text; set => confirm_btn.Text = value; }
+
+        private bool _confirm_btn_click;
 
         public MemberForm()
         {
             InitializeComponent();
-            SchedulerMemberObject = new SchedulerMember("", "", "");
+        }
+
+        private void CreateMember_Load(object sender, EventArgs e)
+        {
+            if (Target == null)
+            {
+                MessageBox.Show("Error loading member data!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Close();
+                return;
+            }
+
+            name_textbox.Text = Target.FirstName;
+            surname_textbox.Text = Target.LastName;
+            description_textbox.Text = Target.Description;
         }
 
         private void create_btn_Click(object sender, EventArgs e)
@@ -23,18 +39,11 @@ namespace Project
                 return; 
             }
 
-            SchedulerMemberObject.Name = name_textbox.Text;
-            SchedulerMemberObject.Surname = surname_textbox.Text;
-            SchedulerMemberObject.Description = description_textbox.Text;
+            Target.FirstName = name_textbox.Text;
+            Target.LastName = surname_textbox.Text;
+            Target.Description = description_textbox.Text;
             _confirm_btn_click = true;
             Close();
-        }
-
-        private void CreateMember_Load(object sender, EventArgs e)
-        {
-            name_textbox.Text = SchedulerMemberObject.Name;
-            surname_textbox.Text = SchedulerMemberObject.Surname;
-            description_textbox.Text = SchedulerMemberObject.Description;
         }
 
         private void input_filter(object sender, KeyPressEventArgs e)

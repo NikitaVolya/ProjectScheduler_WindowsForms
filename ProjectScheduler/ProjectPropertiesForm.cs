@@ -1,12 +1,17 @@
-﻿using Project;
-using ShedulerObjects;
+﻿
+using ProjectScheduler.DAL;
+using ProjectScheduler.DAL.Entities;
 
 namespace ProjectScheduler
 {
     public partial class ProjectPropertiesForm : Form
     {
-        public string FilePath { get; set; }
-        public SchedulerProject SchedulerProjectObject { get; set; }
+        public SchedulerProject? Target { get; set; }
+        public SchedulerProjectServise ProjectServise;
+
+        private SchedulerMember? SelectedMember { get => Target?.SchedulerMembers.ElementAtOrDefault(members_listbox.SelectedIndex); }
+        private SchedulerCategory? SelectedCategory { get => Target?.SchedulerCategories.ElementAtOrDefault(categories_listbox.SelectedIndex); }
+
 
         public ProjectPropertiesForm()
         {
@@ -15,76 +20,120 @@ namespace ProjectScheduler
 
         private void ProjectProperties_Load(object sender, EventArgs e)
         {
-            name_textbox.Text = SchedulerProjectObject.Name;
-            description_textbox.Text = SchedulerProjectObject.Description;
+            if (Target == null)
+            {
+                MessageBox.Show("Project not found!!!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Close();
+                return;
+            }
 
-            DispalayMembers();
-            DisplayCategories();
+            name_textbox.Text = Target.Name;
+            description_textbox.Text = Target.Description;
+
+            UpdateMembersList();
+            UpdateCategoriesList();
         }
 
-        private void DispalayMembers()
+        private void UpdateMembersList()
         {
             members_listbox.Items.Clear();
-
-            foreach (SchedulerMember member in SchedulerProjectObject.ProjectMembers)
-                members_listbox.Items.Add($"{member.Name} {member.Surname}");
+            foreach (SchedulerMember member in ProjectServise.GetProjectMembersByProjectId(Target.Id))
+                members_listbox.Items.Add($"{member.FirstName} {member.LastName}");
         }
-
-        private void DisplayCategories()
+        private void members_listbox_DoubleClick(object sender, EventArgs e)
         {
-            categories_listbox.Items.Clear();
-            foreach (SchedulerCategory category in SchedulerProjectObject.ProjectCategories)
-                categories_listbox.Items.Add(category.Name);
+            if (members_listbox.SelectedItem is null)
+                return;
+
+            MemberForm window = new MemberForm();
+            window.Target = SelectedMember;
+            window.ConfirmButtonText = "Save";
+            window.ShowDialog();
+
+            bool confirm_click = window.ConfirmClick;
+            window.Dispose();
+
+            if (!confirm_click)
+                return;
+
+            ProjectServise.UpdateProject(Target);
+            UpdateMembersList();
         }
         private void add_member_btn_Click(object sender, EventArgs e)
         {
-            MemberForm window = new MemberForm();
-            window.ShowDialog();
+            MemberForm create_member_window = new MemberForm();
+            create_member_window.Target = new SchedulerMember
+            {
+                FirstName = "New member",
+                LastName = "Surname",
+                Description = "Description"
+            };
+            create_member_window.ShowDialog();
 
-            if (!window.ConfirmClick)
+            if (!create_member_window.ConfirmClick)
                 return;
+            SchedulerMember new_member = create_member_window.Target;
+            create_member_window.Dispose();
 
-            SchedulerProjectObject.ProjectMembers.Add(window.SchedulerMemberObject);
-            DispalayMembers();
+            ProjectServise.AddProjectMember(Target, new_member);
+            UpdateMembersList();
         }
-
         private void delete_member_btn_Click(object sender, EventArgs e)
         {
             if (members_listbox.SelectedItem is null)
                 return;
 
-            SchedulerMember selected_member = SchedulerProjectObject.ProjectMembers[members_listbox.SelectedIndex];
+            SchedulerMember selected_member = SelectedMember;
 
-            if (!(SchedulerProjectObject.Tasks.Find(x => !(x.TaskOwner is null) && x.TaskOwner == selected_member) is null))
+            if (ProjectServise.ExisteTaskWithOwnerId(selected_member.Id))
             {
                 DialogResult result = MessageBox.Show("If you delete this project member, all tasks associated with him will be deleted. Do you want to do this?", "warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.No)
                     return;
             }
-            SchedulerProjectObject.Tasks.RemoveAll(x => !(x.TaskOwner is null) && x.TaskOwner == selected_member);
-            SchedulerProjectObject.ProjectMembers.Remove(selected_member);
-            DispalayMembers();
+            ProjectServise.RemoveProjectMember(selected_member.Id);
+            UpdateMembersList();
         }
 
-        private void members_listbox_DoubleClick(object sender, EventArgs e)
-        {
-            SchedulerMember selected_member = SchedulerProjectObject.ProjectMembers[members_listbox.SelectedIndex];
-            MemberForm window = new MemberForm();
-            window.SchedulerMemberObject = selected_member;
-            window.ConfirmButtonText = "Save";
-            window.ShowDialog();
-            DispalayMembers();
-        }
 
-        private void add_category_btn_Click(object sender, EventArgs e)
+        private void UpdateCategoriesList()
         {
+            categories_listbox.Items.Clear();
+            foreach (SchedulerCategory category in Target.SchedulerCategories)
+                categories_listbox.Items.Add(category.Name);
+        }
+        private void categories_listbox_DoubleClick(object sender, EventArgs e)
+        {
+            if (categories_listbox.SelectedItem is null)
+                return;
+
             CategoryForm window = new CategoryForm();
+            window.Target = SelectedCategory;
+            window.ConfirmButtonText = "Save";
             window.ShowDialog();
 
             if (!window.ConfirmClick)
                 return;
-            SchedulerProjectObject.ProjectCategories.Add(window.SchedulerCategoryObject);
-            DisplayCategories();
+
+            ProjectServise.UpdateProject(Target);
+
+            UpdateMembersList();
+        }
+        private void add_category_btn_Click(object sender, EventArgs e)
+        {
+            CategoryForm create_category_window = new CategoryForm();
+            create_category_window.Target = new SchedulerCategory
+            {
+                Name = "New category",
+                Description = "Description"
+            };
+            create_category_window.ShowDialog();
+
+            if (!create_category_window.ConfirmClick)
+                return;
+
+            ProjectServise.AddProjectCategory(Target, create_category_window.Target);
+            UpdateCategoriesList();
         }
 
         private void delete_category_btn_Click(object sender, EventArgs e)
@@ -92,32 +141,23 @@ namespace ProjectScheduler
             if (categories_listbox.SelectedItem is null)
                 return;
 
-            SchedulerCategory selected_category = SchedulerProjectObject.ProjectCategories[categories_listbox.SelectedIndex];
-            if (!(SchedulerProjectObject.Tasks.Find(x => !(x.TaskCategory is null) && x.TaskCategory == selected_category) is null))
+            SchedulerCategory selected_category = SelectedCategory;
+            if (ProjectServise.GetProjectTasksByCategoryId(selected_category.Id).Count() != 0)
             {
                 DialogResult result = MessageBox.Show("If you delete this project category, all tasks associated with him will be deleted. Do you want to do this?", "warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.No)
                     return;
             }
-            SchedulerProjectObject.Tasks.RemoveAll(x => !(x.TaskCategory is null) && x.TaskCategory == selected_category);
-            SchedulerProjectObject.ProjectCategories.Remove(selected_category);
-            DisplayCategories();
-        }
-
-        private void categories_listbox_DoubleClick(object sender, EventArgs e)
-        {
-            SchedulerCategory selected_member = SchedulerProjectObject.ProjectCategories[categories_listbox.SelectedIndex];
-            CategoryForm window = new CategoryForm();
-            window.SchedulerCategoryObject = selected_member;
-            window.ConfirmButtonText = "Save";
-            window.ShowDialog();
-            DispalayMembers();
+            ProjectServise.RemoveProjectCategory(selected_category);
+            UpdateCategoriesList();
         }
 
         private void confirm_btn_Click(object sender, EventArgs e)
         {
-            SchedulerProjectObject.Name = name_textbox.Text;
-            SchedulerProjectObject.Description = description_textbox.Text;
+            Target.Name = name_textbox.Text;
+            Target.Description = description_textbox.Text;
+
+            ProjectServise.UpdateProject(Target);
         }
     }
 }
